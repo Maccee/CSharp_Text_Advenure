@@ -1,0 +1,18 @@
+{
+    "enemies": [
+        {
+            "name": "Kobold",
+            "maxHp": 15,
+            "hp": 15,
+            "atk": 5,
+            "def": 5
+        },
+        {
+            "name": "Imp",
+            "maxHp": 30,
+            "hp": 30,
+            "atk": 10,
+            "def": 10
+        }
+    ]
+}

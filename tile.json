@@ -1,0 +1,31 @@
+{
+    "Forest": {
+        "Name": "Forest",
+        "Char": "F",
+        "Passable": true,
+        "Color": "DarkGreen"
+    },
+    "Rocks": {
+        "Name": "Rocks",
+        "Char": "o",
+        "Passable": true,
+        "Color": "Gray"
+    },
+    "Plains": {
+        "Name": "Plains",
+        "Char": ".",
+        "Passable": true,
+        "Color": "Green"
+    },
+    "Mountains": {
+        "Name": "Mountains",
+        "Char": "0",
+        "Passable": false,
+        "Color": "White"
+    },
+    "Player": {
+        "Char": "@",
+        "Color": "White"
+    }
+}
+
