@@ -1,23 +1,24 @@
-using ConsoleApp.Modules;
+// modules/combat.cs
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading; // Add this line
 
 namespace ConsoleApp.Modules
 {
     public class Combat
     {
+        Random random = new Random();
+        Player? player = Program.player;
+        Enemy? enemy;
         private List<Enemy> _enemies;
         private bool enemyFirstStrike = false;
         private int ambushChance = 10; // 10% chance of enemy ambush
+
 
         // Constructor: initializes the _enemies list and loads enemies from JSON file
         public Combat()
         {
             _enemies = new List<Enemy>();
             LoadEnemiesFromJson();
+            enemy = _enemies[random.Next(_enemies.Count)];
         }
 
         // Loads enemy data from the JSON file and assigns it to the _enemies list
@@ -29,7 +30,7 @@ namespace ConsoleApp.Modules
         }
 
         // Enemy ambush and first strike
-        private void Ambush(bool enemyFirstStrike, Player player, Enemy enemy, Random rng)
+        private void Ambush()
         {
             if (enemyFirstStrike)
             {
@@ -44,44 +45,44 @@ namespace ConsoleApp.Modules
                     Thread.Sleep(500);
                 }
                 Console.ResetColor();
-                PrintCombatScreen(player, enemy);
+                PrintCombatScreen();
                 Thread.Sleep(500);
-                EnemyAttack(player, enemy, rng);
+                EnemyAttack();
                 enemyFirstStrike = false;
             }
         }
 
         // Handles combat between the player and a randomly-selected enemy
-        public void StartCombat(Player player, InputHandler inputHandler)
+        public void StartCombat()
         {
-            // Get enemy from _enemies list
-            var rng = new Random();
-            var enemy = _enemies[rng.Next(_enemies.Count)];
+            if (player == null || enemy == null) { return; }
+
+            ViewPort.statusWindow = false;
 
             // Check for enemy ambush
-            enemyFirstStrike = rng.Next(1, 101) <= ambushChance;
-            enemy.MaxHp = enemy.MaxHp + rng.Next(-10, 10);
+            enemyFirstStrike = random.Next(1, 101) <= ambushChance;
+            enemy.MaxHp = enemy.MaxHp + random.Next(-10, 10);
             enemy.HP = enemy.MaxHp;
 
             while (player.IsInCombat)
             {
-                Ambush(enemyFirstStrike, player, enemy, rng);
+                Ambush();
 
-                PrintCombatScreen(player, enemy);
+                PrintCombatScreen();
 
-                var combatInput = inputHandler.GetCombatInput();
+                var combatInput = InputHandler.GetCombatInput();
 
                 if (combatInput == 'A') // Attack
                 {
                     int hitChance = Math.Max(5, 75 + (player.ATK - enemy.DEF) * 5); // Minimum hit chance is 5%
-                    if (rng.Next(0, 100) < hitChance)
+                    if (random.Next(0, 100) < hitChance)
                     {
                         // Add a damage variability factor (e.g., 0.2 for +/- 20%)
                         float damageVariability = 0.2f;
                         // Calculate the base damage
                         int damage = (int)(player.ATK * (1 - (enemy.DEF / (float)(enemy.DEF + 100))));
                         // Generate a random percentage between -damageVariability and +damageVariability
-                        float randomPercentage = (float)rng.NextDouble() * 2 * damageVariability - damageVariability;
+                        float randomPercentage = (float)random.NextDouble() * 2 * damageVariability - damageVariability;
                         // Apply the random factor to the base damage
                         damage = (int)(damage * (1 + randomPercentage));
                         // Ensure the minimum damage is 1
@@ -97,7 +98,7 @@ namespace ConsoleApp.Modules
                     }
                     if (enemy.HP > 0)
                     {
-                        EnemyAttack(player, enemy, rng);
+                        EnemyAttack();
                     }
                     else
                     {
@@ -106,29 +107,33 @@ namespace ConsoleApp.Modules
                         player.Exp = player.Exp + enemy.MaxHp / 2;
                         player.IsInCombat = false;
                         player.moveFirst = 0;
+                        Console.Clear();
                     }
                 }
                 else if (combatInput == 'R') // Run from combat
                 {
                     player.IsInCombat = false;
                     player.moveFirst = 0;
+                    Console.Clear();
                 }
             }
         }
 
         // Enemy attack logic
-        private void EnemyAttack(Player player, Enemy enemy, Random rng)
+        private void EnemyAttack()
         {
+            if (player == null || enemy == null) { return; }
+
             int hitChance = Math.Max(5, 75 + (enemy.ATK - player.DEF) * 5); // Minimum hit chance is 5%
 
-            if (rng.Next(0, 100) < hitChance)
+            if (random.Next(0, 100) < hitChance)
             {
                 // Add a damage variability factor (e.g., 0.2 for +/- 20%)
                 float damageVariability = 0.2f;
                 // Calculate the base damage
                 int damage = (int)(enemy.ATK * (1 - (player.DEF / (float)(player.DEF + 100))));
                 // Generate a random percentage between -damageVariability and +damageVariability
-                float randomPercentage = (float)rng.NextDouble() * 2 * damageVariability - damageVariability;
+                float randomPercentage = (float)random.NextDouble() * 2 * damageVariability - damageVariability;
                 // Apply the random factor to the base damage
                 damage = (int)(damage * (1 + randomPercentage));
                 // Ensure the minimum damage is 1
@@ -183,9 +188,9 @@ namespace ConsoleApp.Modules
             Thread.Sleep(pauseDuration);
         }
         // Prints the combat screen, displaying player and enemy HP, and available commands
-        public void PrintCombatScreen(Player player, Enemy enemy)
+        public void PrintCombatScreen()
         {
-
+            if (player == null || enemy == null) { return; }
 
             Console.Clear();
             Console.ForegroundColor = ConsoleColor.Red;
@@ -196,7 +201,6 @@ namespace ConsoleApp.Modules
             Console.WriteLine("▐███▌ ▐█▌.▐▌ ██ ██▌▐█▌ ██▄·▐█ ▐█· ▐▌  ▐█▌·");
             Console.WriteLine("·▀▀▀   ▀█▄▀· ▀▀  █·▀▀▀·▀▀▀▀    ▀   ▀  ▀▀▀");
             Console.WriteLine();
-
 
             // PLAYER DATA
             Console.ForegroundColor = ConsoleColor.White;

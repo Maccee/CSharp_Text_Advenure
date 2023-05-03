@@ -1,43 +1,31 @@
 ﻿// modules/MapGenerator.cs
-
 namespace ConsoleApp.Modules
 {
     public class MapGenerator
     {
-        private int mapWidth = 100;
-        private int mapHeight = 25;
-        private int forestPercentage = 25;
-        private int requiredAdjacentForest = 2;
+        private static int mapWidth = 100;
+        private static int mapHeight = 25;
+        private static int forestPercentage = 25;
+        private static int requiredAdjacentForest = 2;
+        private static int rockFormations = 10;
+        private static char[,] map = new char[mapHeight, mapWidth];
+        private static Random rnd = new Random();
 
-        private int rockFormations = 10;
-        private char[,] map;
-        public char OldTreasureTile { get; private set; }
-
-
-
-        public MapGenerator()
-        {
-            this.map = new char[mapHeight, mapWidth];
-        }
-
-        public void GenerateMap()
+        public static void GenerateMap()
         {
             FillMapWithForest();
             LonelyForestRemoval();
             FillSurroundedGrassWithForest();
             GenerateRockFormations();
-            //AddTreasure();
             WriteMapToFile();
-
-
         }
-        public char[,] GetMap()
+        public static char[,] GetMap()
         {
             char[,] currentMap = new char[mapHeight, mapWidth];
             Array.Copy(map, currentMap, map.Length);
             return currentMap;
         }
-        public char[,] CreateMapArray(string[] map)
+        public static char[,] CreateMapArray(string[] map)
         {
             char[,] mapArray = new char[map.Length, map[0].Length];
 
@@ -48,13 +36,10 @@ namespace ConsoleApp.Modules
                     mapArray[i, j] = map[i][j];
                 }
             }
-
             return mapArray;
         }
-
-        private void FillMapWithForest()
+        private static void FillMapWithForest()
         {
-            Random rnd = new Random();
             for (int x = 0; x < mapHeight; x++)
             {
                 for (int y = 0; y < mapWidth; y++)
@@ -70,8 +55,7 @@ namespace ConsoleApp.Modules
                 }
             }
         }
-
-        private void LonelyForestRemoval()
+        private static void LonelyForestRemoval()
         {
             for (int x = 0; x < mapHeight; x++)
             {
@@ -104,8 +88,7 @@ namespace ConsoleApp.Modules
                 }
             }
         }
-
-        private void FillSurroundedGrassWithForest()
+        private static void FillSurroundedGrassWithForest()
         {
             char[,] currentMap = GetMap();
 
@@ -137,10 +120,8 @@ namespace ConsoleApp.Modules
                 }
             }
         }
-
-        private void GenerateRockFormations()
+        private static void GenerateRockFormations()
         {
-            Random rnd = new Random();
             for (int i = 0; i < rockFormations; i++)
             {
                 int chunkSize = rnd.Next(10, 35); // Random size between 6 and 24
@@ -184,8 +165,7 @@ namespace ConsoleApp.Modules
                 }
             }
         }
-
-        private void AddGravel(int x, int y)
+        private static void AddGravel(int x, int y)
         {
             for (int dx = -1; dx <= 1; dx++)
             {
@@ -205,32 +185,7 @@ namespace ConsoleApp.Modules
                 }
             }
         }
-        private void AddTreasure()
-        {
-            Random rnd = new Random();
-            int x, y;
-
-            while (true)
-            {
-                x = rnd.Next(mapHeight);
-                y = rnd.Next(mapWidth);
-
-                if (map[x, y] == '.' || map[x, y] == 'F' || map[x, y] == 'o')
-                {
-                    OldTreasureTile = map[x, y]; // Store the original tile before the treasure was added
-                    map[x, y] = '$';
-                    break;
-                }
-            }
-        }
-
-        public char GetOldTreasureTile()
-        {
-            return OldTreasureTile;
-        }
-
-
-        private void WriteMapToFile()
+        private static void WriteMapToFile()
         {
             string filename = "map.txt";
             using (StreamWriter writer = new StreamWriter(filename))
@@ -244,7 +199,6 @@ namespace ConsoleApp.Modules
                     writer.WriteLine();
                 }
             }
-            //Console.WriteLine("Map saved to file.");
         }
     }
 }

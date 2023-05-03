@@ -9,21 +9,18 @@ namespace ConsoleApp.Modules
         public const int ViewPortWidth = 15;
         public const int ViewPortHeight = 7;
 
-        private char playerTile;
+        private static char playerTile = Program.previousTile;
+        public static bool statusWindow = false;
+        private static Player? player = Program.player;
+        private static TileManager? tileManager = Program.tileManager;
 
-        private void StatusWindow(Player player, TileManager tilemanager, char playerTile)
+        public static void StatusWindow()
         {
+            if (player == null) { return; }
             // Print player stats
-            // Print player stats
-            PrintColored($"► {player.Name} :: Lvl {player.Level} :: Exp: {player.Exp} :: HP {player.HP}/{player.MaxHp} :: ");
+            Console.SetCursorPosition(20, 1);
+            PrintColored($"► {player.Name} :: Lvl {player.Level} :: Exp: {player.Exp} :: HP {player.HP}/{player.MaxHp} ◄");
 
-            // Print player location
-            Console.ResetColor();
-            PrintColored($"{player.Y + 1}, {player.X + 1} :: ");
-
-            // Print the tile description player is on
-            CheckTilePlayerIsOn(playerTile, tilemanager);
-            PrintColored(" ◄\n");
         }
 
         static bool IsLatinLetter(char c)
@@ -51,13 +48,14 @@ namespace ConsoleApp.Modules
             }
             Console.ForegroundColor = originalColor;
         }
-        private void CheckTilePlayerIsOn(char playerTile, TileManager tileManager)
+        public static void CheckTilePlayerIsOn()
         {
+            if (tileManager == null) { return; }
             foreach (var tile in tileManager.Tiles.Values)
             {
-                if (tile.Char == playerTile.ToString())
+                if (tile.Char == Program.previousTile.ToString())
                 {
-                    PrintColored(tile.Name);
+                    PrintColored(tile.Name + "   ");
                     break;
                 }
             }
@@ -66,9 +64,9 @@ namespace ConsoleApp.Modules
         //
         // Print the visible map area around the player
         //
-        public void Print(char[,] mapArray, Player player, TileManager tilemanager, char playerTile)
+        public static void Print(char[,] mapArray)
         {
-
+            if (player == null || tileManager == null) { return; }
             int mapHeight = mapArray.GetLength(0);
             int mapWidth = mapArray.GetLength(1);
 
@@ -88,10 +86,18 @@ namespace ConsoleApp.Modules
                 startY = Math.Max(0, endY - ViewPortHeight);
             }
 
-            StatusWindow(player, tilemanager, playerTile);
+            if (!statusWindow)
+            {
+                StatusWindow();
+                statusWindow = true;
+
+            }
 
 
-            // Print the top frame border
+            // Start printing
+            Console.SetCursorPosition(0, 1);
+            
+            // Top Border of the map
             Console.Write("╔");
             Console.WriteLine("".PadLeft(ViewPortWidth, '═') + "╗");
 
@@ -109,7 +115,7 @@ namespace ConsoleApp.Modules
                     {
                         char currentTile = mapArray[y, x];
                         // Set color for each tile type
-                        ChangeTileColor(currentTile, tilemanager);
+                        ChangeTileColor(currentTile, tileManager);
                         // Print the tile
                         Console.Write(currentTile);
                     }
@@ -126,10 +132,19 @@ namespace ConsoleApp.Modules
             Console.ResetColor();
             Console.Write("╚");
             Console.WriteLine("".PadLeft(ViewPortWidth, '═') + "╝");
+
+            // Location in map
+            Console.ResetColor();
+            PrintColored($"{player.Y + 1}, {player.X + 1} : ");
+            
+
+            // Print the tile description player is on
+            CheckTilePlayerIsOn();
+            
         }
 
 
-        private void ChangeTileColor(char currentTile, TileManager tileManager)
+        private static void ChangeTileColor(char currentTile, TileManager tileManager)
         {
             foreach (var tile in tileManager.Tiles.Values)
             {
@@ -150,7 +165,7 @@ namespace ConsoleApp.Modules
         }
 
         // Check if there's a line of sight between two points on the map
-        private bool HasLineOfSight(char[,] map, int x0, int y0, int x1, int y1)
+        private static bool HasLineOfSight(char[,] map, int x0, int y0, int x1, int y1)
         {
             // Calculate the differences and signs for x and y directions
             int dx = Math.Abs(x1 - x0);

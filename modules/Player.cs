@@ -20,14 +20,14 @@ namespace ConsoleApp.Modules
         public int moveFirst { get; set; }
         public int Level { get; private set; }
         public int Exp { get; set; }
-        private TileManager tileManager;
+        private TileManager? tileManager = Program.tileManager;
         public bool playerDead;
 
 
         // Constructor with default values for character, name, attack, defense, and health points
-        public Player(char[,] map, TileManager tileManager)
+        public Player(char[,] mapArray)
         {
-            this.tileManager = tileManager;
+            //this.tileManager = tileManager;
             this.moveFirst = 1;
             this.playerDead = false;
 
@@ -38,14 +38,14 @@ namespace ConsoleApp.Modules
             MaxHp = 100;
             HP = 100;
             Level = 1;
-            (Y, X) = GetRandomStartPosition(map); // Swap the returned values
+            (Y, X) = GetRandomStartPosition(mapArray); // Swap the returned values
         }
         
         // Get a random starting position for the player on the map
-        private (int, int) GetRandomStartPosition(char[,] map)
+        private (int, int) GetRandomStartPosition(char[,] mapArray)
         {
-            int mapHeight = map.GetLength(0);
-            int mapWidth = map.GetLength(1);
+            int mapHeight = mapArray.GetLength(0);
+            int mapWidth = mapArray.GetLength(1);
             Random rnd = new Random();
             int x, y;
 
@@ -60,7 +60,7 @@ namespace ConsoleApp.Modules
                 y = rnd.Next(bufferX, mapWidth - bufferX);
 
                 // Check if the position is valid (not a wall)
-                if (map[x, y] == '.')
+                if (mapArray[x, y] == '.')
                 {
                     break;
                 }
@@ -73,16 +73,17 @@ namespace ConsoleApp.Modules
         }
 
         // Move the player and update their position on the map
-        public bool Move(int dx, int dy, char[,] map)
+        public bool Move(int dx, int dy, char[,] mapArray)
         {
+            if (tileManager == null) { return false; }
             // gets the new movement direction from the inputhandler
             int newX = X + dx;
             int newY = Y + dy;
 
             // Check if the new position is within the map bounds
-            if (newX >= 0 && newX < map.GetLength(1) && newY >= 0 && newY < map.GetLength(0))
+            if (newX >= 0 && newX < mapArray.GetLength(1) && newY >= 0 && newY < mapArray.GetLength(0))
             {
-                char newPositionTile = map[newY, newX];
+                char newPositionTile = mapArray[newY, newX];
 
                 // Check if the tile newPositionTile is passable using the TileManager instance
                 bool isPassable = false;
@@ -112,6 +113,7 @@ namespace ConsoleApp.Modules
                         if (chance == 1)
                         {
                             this.HP++;
+                            ViewPort.StatusWindow();
                         }
                     }
                     // move is successful and main updates mapArray with the previous tile

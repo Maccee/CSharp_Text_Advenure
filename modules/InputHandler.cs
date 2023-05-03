@@ -1,61 +1,64 @@
 // modules/InputHandler.cs
 
 using System;
+using System.Collections;
 
 namespace ConsoleApp.Modules
 {
     public class InputHandler
     {
-        public (int, int, bool) GetMovement()
+        public static (int, int, bool) GetMovement()
         {
             ConsoleKeyInfo keyInfo = Console.ReadKey(intercept: true);
             int dx = 0;
             int dy = 0;
             bool quit = false;
 
-            switch (keyInfo.Key)
+            switch (keyInfo.KeyChar)
             {
-                case ConsoleKey.D1: // bottom-left
+                case '1': // bottom-left
                     dx = -1;
                     dy = 1;
                     break;
-                case ConsoleKey.D2: // down
+                case '2': // down
                     dx = 0;
                     dy = 1;
                     break;
-                case ConsoleKey.D3: // bottom-right
+                case '3': // bottom-right
                     dx = 1;
                     dy = 1;
                     break;
-                case ConsoleKey.D4: // left
+                case '4': // left
                     dx = -1;
                     dy = 0;
                     break;
-                case ConsoleKey.D6: // right
+                case '6': // right
                     dx = 1;
                     dy = 0;
                     break;
-                case ConsoleKey.D7: // top-left
+                case '7': // top-left
                     dx = -1;
                     dy = -1;
                     break;
-                case ConsoleKey.D8: // up
+                case '8': // up
                     dx = 0;
                     dy = -1;
                     break;
-                case ConsoleKey.D9: // top-right
+                case '9': // top-right
                     dx = 1;
                     dy = -1;
                     break;
-                case ConsoleKey.X:
-
+                case 'X':
+                    quit = true;
+                    break;
+                case 'x':
                     quit = true;
                     break;
             }
-            
+
             return (dx, dy, quit);
         }
-        public char GetCombatInput()
+        public static char GetCombatInput()
         {
             ConsoleKeyInfo keyInfo = Console.ReadKey(intercept: true);
 
