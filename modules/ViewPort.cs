@@ -16,10 +16,16 @@ namespace ConsoleApp.Modules
 
         public static void StatusWindow()
         {
+            Console.CursorVisible = false;
             if (player == null) { return; }
             // Print player stats
             Console.SetCursorPosition(20, 1);
-            PrintColored($"► {player.Name} :: Lvl {player.Level} :: Exp: {player.Exp} :: HP {player.HP}/{player.MaxHp} ◄");
+            PrintColored($"► Level {player.Level} {player.Name}\n");
+            Console.SetCursorPosition(20, 2);
+            
+            PrintColored($"► Experience: {player.Exp}\n");
+            Console.SetCursorPosition(20, 4);
+            PrintColored($"► Hitpoints: {player.HP}/{player.MaxHp}\n");
 
         }
 
@@ -55,6 +61,7 @@ namespace ConsoleApp.Modules
             {
                 if (tile.Char == Program.previousTile.ToString())
                 {
+                     Console.CursorVisible = false;
                     PrintColored(tile.Name + "   ");
                     break;
                 }
@@ -98,7 +105,7 @@ namespace ConsoleApp.Modules
             Console.SetCursorPosition(0, 1);
             
             // Top Border of the map
-            Console.Write("╔");
+            Console.Write(" ╔");
             Console.WriteLine("".PadLeft(ViewPortWidth, '═') + "╗");
 
             // Print the map with the frame
@@ -106,7 +113,7 @@ namespace ConsoleApp.Modules
             {
                 // Print the top frame
                 Console.ResetColor();
-                Console.Write("║");
+                Console.Write(" ║");
 
                 for (int x = startX; x < endX; x++)
                 {
@@ -130,12 +137,12 @@ namespace ConsoleApp.Modules
             }
             // Print the bottom frame border
             Console.ResetColor();
-            Console.Write("╚");
+            Console.Write(" ╚");
             Console.WriteLine("".PadLeft(ViewPortWidth, '═') + "╝");
 
             // Location in map
             Console.ResetColor();
-            PrintColored($"{player.Y + 1}, {player.X + 1} : ");
+            PrintColored($" {player.Y + 1}, {player.X + 1} : ");
             
 
             // Print the tile description player is on

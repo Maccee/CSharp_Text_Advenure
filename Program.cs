@@ -17,6 +17,7 @@ namespace ConsoleApp
 
         static void Main(string[] args)
         {
+            Console.Clear();
             Console.CursorVisible = false;
             // Initialize dictionary for map tiles
             tileManager = new TileManager("./tile.json");
