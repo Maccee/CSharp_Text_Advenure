@@ -11,6 +11,9 @@ namespace ConsoleApp.Modules
         private List<Enemy> _enemies;
         private bool enemyFirstStrike = false;
         private int ambushChance = 10; // 10% chance of enemy ambush
+
+        private int playerHitChance;
+        private int enemyHitChance;
         // Constructor: initializes the _enemies list and loads enemies from JSON file
         public Combat()
         {
@@ -60,7 +63,7 @@ namespace ConsoleApp.Modules
             }
         }
 
-        
+
 
 
         private void Ambush()
@@ -93,19 +96,21 @@ namespace ConsoleApp.Modules
             enemyFirstStrike = random.Next(1, 101) <= ambushChance;
             enemy.MaxHp = enemy.MaxHp + random.Next(-10, 10);
             enemy.HP = enemy.MaxHp;
+            playerHitChance = Math.Max(5, 75 + (player.ATK - enemy.DEF) * 5); // Minimum hit chance is 5%
+            if (playerHitChance > 100) { playerHitChance = 100; }
+            enemyHitChance = Math.Max(5, 75 + (enemy.ATK - player.DEF) * 5); // Minimum hit chance is 5%
+            if (enemyHitChance > 100) { enemyHitChance = 100; }
             while (player.IsInCombat)
             {
+
                 Ambush();
                 PrintCombatScreen();
                 var combatInput = InputHandler.GetCombatInput();
                 if (combatInput == 'A') // Attack
                 {
-                    int hitChance = Math.Max(5, 75 + (player.ATK - enemy.DEF) * 5); // Minimum hit chance is 5%
-                    if (hitChance > 100)
-                    {
-                        hitChance = 100;
-                    }
-                    if (random.Next(0, 100) < hitChance)
+
+
+                    if (random.Next(0, 100) < playerHitChance)
                     {
                         // Add a damage variability factor (e.g., 0.3 for +/- 30%)
                         float damageVariability = 0.3f;
@@ -120,11 +125,11 @@ namespace ConsoleApp.Modules
                         damage = Math.Max(1, damage);
                         // Apply the damage to the enemy's HP
                         enemy.HP -= damage;
-                        PrintCombatMessage($"You hit {enemy.Name} for {damage} damage. {hitChance}%", 500);
+                        PrintCombatMessage($"You hit {enemy.Name} for {damage} damage.", 500);
                     }
                     else
                     {
-                        PrintCombatMessage($"You missed! {hitChance}%", 500);
+                        PrintCombatMessage($"You missed!", 500);
                     }
                     if (enemy.HP > 0)
                     {
@@ -132,7 +137,7 @@ namespace ConsoleApp.Modules
                     }
                     else
                     {
-                        int expGained = enemy.MaxHp *10;
+                        int expGained = enemy.MaxHp + (enemy.ATK + enemy.DEF) / 3;
                         PrintCombatMessage($"{enemy.Name} died!", 1500);
                         PrintCombatMessage($"You got {expGained} experience!\n", 1500);
 
@@ -156,8 +161,8 @@ namespace ConsoleApp.Modules
         private void EnemyAttack()
         {
             if (player == null || enemy == null) { return; }
-            int hitChance = Math.Max(5, 75 + (enemy.ATK - player.DEF) * 5); // Minimum hit chance is 5%
-            if (random.Next(0, 100) < hitChance)
+
+            if (random.Next(0, 100) < enemyHitChance)
             {
                 // Add a damage variability factor (e.g., 0.2 for +/- 20%)
                 float damageVariability = 0.2f;
@@ -171,7 +176,7 @@ namespace ConsoleApp.Modules
                 damage = Math.Max(1, damage);
                 // Apply the damage to the player's HP
                 player.HP -= damage;
-                PrintCombatMessage($"{enemy.Name} hits you for {damage} damage. {hitChance}%", 500);
+                PrintCombatMessage($"{enemy.Name} hits you for {damage} damage.", 500);
                 if (player.HP <= 0)
                 {
                     if (Program.mapArray == null) { return; }
@@ -195,7 +200,7 @@ namespace ConsoleApp.Modules
             }
             else
             {
-                PrintCombatMessage($"{enemy.Name} misses completely! {hitChance}%", 500);
+                PrintCombatMessage($"{enemy.Name} misses completely!", 500);
             }
         }
         // New method to print combat messages and pause for a given duration
@@ -239,7 +244,7 @@ namespace ConsoleApp.Modules
             Console.ForegroundColor = ConsoleColor.White;
             Console.Write($" {player.Name}");
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine($" {player.HP}/{player.MaxHp}");
+            Console.WriteLine($" {player.HP}/{player.MaxHp} :: {playerHitChance}%");
             Console.ForegroundColor = ConsoleColor.Green;
             int playerHealthPercentage = (int)(((double)player.HP / player.MaxHp) * 100);
             int playerHealthBars = (playerHealthPercentage * 40) / 100;
@@ -256,7 +261,7 @@ namespace ConsoleApp.Modules
             Console.ForegroundColor = ConsoleColor.White;
             Console.Write($" {enemy.Name}");
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine($" {enemy.HP}/{enemy.MaxHp}");
+            Console.WriteLine($" {enemy.HP}/{enemy.MaxHp} :: {enemyHitChance}%");
             Console.ForegroundColor = ConsoleColor.Red;
             int enemyHealthPercentage = (int)(((double)enemy.HP / enemy.MaxHp) * 100);
             int enemyHealthBars = (enemyHealthPercentage * 40) / 100;
@@ -272,7 +277,7 @@ namespace ConsoleApp.Modules
             // COMMANDS
             Console.ForegroundColor = ConsoleColor.Magenta;
             Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine(" (A)ttack, (R)un");
+            Console.WriteLine(" [A]ttack, [R]un");
             Console.WriteLine("");
             Console.ResetColor();
         }
