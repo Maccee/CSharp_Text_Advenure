@@ -1,18 +1,81 @@
 {
-    "enemies": [
-        {
-            "name": "Kobold",
-            "maxHp": 15,
-            "hp": 15,
-            "atk": 5,
-            "def": 5
-        },
-        {
-            "name": "Imp",
-            "maxHp": 30,
-            "hp": 30,
-            "atk": 10,
-            "def": 10
-        }
-    ]
+  "enemies": [
+    {
+      "name": "Kobold",
+      "maxHp": 15,
+      "hp": 15,
+      "atk": 5,
+      "def": 5
+    },
+    {
+      "name": "Imp",
+      "maxHp": 30,
+      "hp": 30,
+      "atk": 10,
+      "def": 10
+    },
+    {
+      "name": "Goblin",
+      "maxHp": 20,
+      "hp": 20,
+      "atk": 7,
+      "def": 6
+    },
+    {
+      "name": "Orc",
+      "maxHp": 35,
+      "hp": 35,
+      "atk": 14,
+      "def": 10
+    },
+    {
+      "name": "Wraith",
+      "maxHp": 25,
+      "hp": 25,
+      "atk": 11,
+      "def": 9
+    },
+    {
+      "name": "Skeleton",
+      "maxHp": 12,
+      "hp": 12,
+      "atk": 6,
+      "def": 5
+    },
+    {
+      "name": "Harpy",
+      "maxHp": 22,
+      "hp": 22,
+      "atk": 9,
+      "def": 7
+    },
+    {
+      "name": "Dark Elf",
+      "maxHp": 28,
+      "hp": 28,
+      "atk": 12,
+      "def": 11
+    },
+    {
+      "name": "Dire Wolf",
+      "maxHp": 32,
+      "hp": 32,
+      "atk": 15,
+      "def": 12
+    },
+    {
+      "name": "Gargoyle",
+      "maxHp": 40,
+      "hp": 40,
+      "atk": 16,
+      "def": 18
+    },
+    {
+      "name": "Will-o'-Wisp",
+      "maxHp": 10,
+      "hp": 10,
+      "atk": 5,
+      "def": 5
+    }
+  ]
 }

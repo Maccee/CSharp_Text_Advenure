@@ -6,20 +6,21 @@ namespace ConsoleApp.Modules
     public class Player
     {
         // Player properties
-        public int X { get; private set; }
-        public int Y { get; private set; }
+        public int X { get; set; }
+        public int Y { get; set; }
         public char Character { get; private set; }
         public int Gold { get; private set; }
-        public int ATK { get; private set; }
-        public int DEF { get; private set; }
+        public int ATK { get; set; }
+        public int DEF { get; set; }
         public string Name { get; private set; }
         public int MaxHp { get; private set; }
         public int HP { get; set; }
         public char PlayerTile { get; private set; }
         public bool IsInCombat { get; set; }
         public int moveFirst { get; set; }
-        public int Level { get; private set; }
+        public int Level { get; set; }
         public int Exp { get; set; }
+        public int requiredExp { get; set; }
         private TileManager? tileManager = Program.tileManager;
         public bool playerDead;
 
@@ -40,9 +41,9 @@ namespace ConsoleApp.Modules
             Level = 1;
             (Y, X) = GetRandomStartPosition(mapArray); // Swap the returned values
         }
-        
+
         // Get a random starting position for the player on the map
-        private (int, int) GetRandomStartPosition(char[,] mapArray)
+        public (int, int) GetRandomStartPosition(char[,] mapArray)
         {
             int mapHeight = mapArray.GetLength(0);
             int mapWidth = mapArray.GetLength(1);
@@ -66,9 +67,14 @@ namespace ConsoleApp.Modules
                 }
             }
             // Reset player
+            this.MaxHp = 100;
             this.HP = this.MaxHp;
             this.Level = 1;
-
+            this.Exp = 0;
+            this.requiredExp = 100;
+            this.ATK = 10;
+            this.DEF = 10;
+            Console.Clear();
             return (x, y);
         }
 

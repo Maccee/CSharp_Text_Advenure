@@ -23,9 +23,13 @@ namespace ConsoleApp.Modules
             PrintColored($"► Level {player.Level} {player.Name}\n");
             Console.SetCursorPosition(20, 2);
             
-            PrintColored($"► Experience: {player.Exp}\n");
+            PrintColored($"► Experience: {player.Exp}/{player.requiredExp}\n");
             Console.SetCursorPosition(20, 4);
             PrintColored($"► Hitpoints: {player.HP}/{player.MaxHp}\n");
+            Console.SetCursorPosition(20, 5);
+            PrintColored($"► ATK: {player.ATK}\n");
+            Console.SetCursorPosition(20, 6);
+            PrintColored($"► DEF: {player.DEF}\n");
 
         }
 

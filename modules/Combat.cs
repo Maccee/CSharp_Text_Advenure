@@ -11,8 +11,6 @@ namespace ConsoleApp.Modules
         private List<Enemy> _enemies;
         private bool enemyFirstStrike = false;
         private int ambushChance = 10; // 10% chance of enemy ambush
-
-
         // Constructor: initializes the _enemies list and loads enemies from JSON file
         public Combat()
         {
@@ -20,7 +18,6 @@ namespace ConsoleApp.Modules
             LoadEnemiesFromJson();
             enemy = _enemies[random.Next(_enemies.Count)];
         }
-
         // Loads enemy data from the JSON file and assigns it to the _enemies list
         private void LoadEnemiesFromJson()
         {
@@ -28,8 +25,44 @@ namespace ConsoleApp.Modules
             var enemyData = JsonConvert.DeserializeObject<EnemyData>(json);
             _enemies = enemyData?.Enemies ?? new List<Enemy>();
         }
-
         // Enemy ambush and first strike
+        private void HandleLevelup(int expGained)
+        {
+            if (player == null) { return; }
+            player.Exp += expGained;
+            if (player.Exp >= player.requiredExp)
+            {
+                int excessExp = player.Exp - player.requiredExp;
+                player.Level++;
+                player.requiredExp = (int)(player.requiredExp * 1.2);
+
+                // Call the modified PrintCombatMessage method for the level up message
+                PrintCombatMessage($"You got a new level!\n", 1500);
+
+                PrintCombatMessage($"Which stat you want to increase ([A]TK or [D]EF)", 0);
+                ConsoleKeyInfo key = Console.ReadKey(true);
+                while (key.KeyChar != 'a' && key.KeyChar != 'A' && key.KeyChar != 'd' && key.KeyChar != 'D')
+                {
+                    PrintCombatMessage($"Invalid input. Choose which stat you want to increase ([A]TK or [D]EF)", 1500);
+                    key = Console.ReadKey(true);
+                }
+
+                if (key.KeyChar == 'a' || key.KeyChar == 'A')
+                {
+                    player.ATK++;
+                }
+                else if (key.KeyChar == 'd' || key.KeyChar == 'D')
+                {
+                    player.DEF++;
+                }
+
+                player.Exp = excessExp;
+            }
+        }
+
+        
+
+
         private void Ambush()
         {
             if (enemyFirstStrike)
@@ -51,45 +84,42 @@ namespace ConsoleApp.Modules
                 enemyFirstStrike = false;
             }
         }
-
         // Handles combat between the player and a randomly-selected enemy
         public void StartCombat()
         {
             if (player == null || enemy == null) { return; }
-
             ViewPort.statusWindow = false;
-
             // Check for enemy ambush
             enemyFirstStrike = random.Next(1, 101) <= ambushChance;
             enemy.MaxHp = enemy.MaxHp + random.Next(-10, 10);
             enemy.HP = enemy.MaxHp;
-
             while (player.IsInCombat)
             {
                 Ambush();
-
                 PrintCombatScreen();
-
                 var combatInput = InputHandler.GetCombatInput();
-
                 if (combatInput == 'A') // Attack
                 {
                     int hitChance = Math.Max(5, 75 + (player.ATK - enemy.DEF) * 5); // Minimum hit chance is 5%
+                    if (hitChance > 100)
+                    {
+                        hitChance = 100;
+                    }
                     if (random.Next(0, 100) < hitChance)
                     {
-                        // Add a damage variability factor (e.g., 0.2 for +/- 20%)
-                        float damageVariability = 0.2f;
+                        // Add a damage variability factor (e.g., 0.3 for +/- 30%)
+                        float damageVariability = 0.3f;
                         // Calculate the base damage
                         int damage = (int)(player.ATK * (1 - (enemy.DEF / (float)(enemy.DEF + 100))));
-                        // Generate a random percentage between -damageVariability and +damageVariability
-                        float randomPercentage = (float)random.NextDouble() * 2 * damageVariability - damageVariability;
+                        // Generate a random percentage between -damageVariability and +damageVariability for both ATK and DEF
+                        float randomATKPercentage = (float)random.NextDouble() * 2 * damageVariability - damageVariability;
+                        float randomDEFPercentage = (float)random.NextDouble() * 2 * damageVariability - damageVariability;
                         // Apply the random factor to the base damage
-                        damage = (int)(damage * (1 + randomPercentage));
+                        damage = (int)(damage * (1 + randomATKPercentage) * (1 - randomDEFPercentage));
                         // Ensure the minimum damage is 1
                         damage = Math.Max(1, damage);
                         // Apply the damage to the enemy's HP
                         enemy.HP -= damage;
-
                         PrintCombatMessage($"You hit {enemy.Name} for {damage} damage. {hitChance}%", 500);
                     }
                     else
@@ -102,9 +132,13 @@ namespace ConsoleApp.Modules
                     }
                     else
                     {
+                        int expGained = enemy.MaxHp *10;
                         PrintCombatMessage($"{enemy.Name} died!", 1500);
-                        PrintCombatMessage($"You got {enemy.MaxHp / 2} experience!", 1500);
-                        player.Exp = player.Exp + enemy.MaxHp / 2;
+                        PrintCombatMessage($"You got {expGained} experience!\n", 1500);
+
+
+                        HandleLevelup(expGained);
+
                         player.IsInCombat = false;
                         player.moveFirst = 0;
                         Console.Clear();
@@ -118,14 +152,11 @@ namespace ConsoleApp.Modules
                 }
             }
         }
-
         // Enemy attack logic
         private void EnemyAttack()
         {
             if (player == null || enemy == null) { return; }
-
             int hitChance = Math.Max(5, 75 + (enemy.ATK - player.DEF) * 5); // Minimum hit chance is 5%
-
             if (random.Next(0, 100) < hitChance)
             {
                 // Add a damage variability factor (e.g., 0.2 for +/- 20%)
@@ -140,18 +171,26 @@ namespace ConsoleApp.Modules
                 damage = Math.Max(1, damage);
                 // Apply the damage to the player's HP
                 player.HP -= damage;
-
                 PrintCombatMessage($"{enemy.Name} hits you for {damage} damage. {hitChance}%", 500);
-
                 if (player.HP <= 0)
                 {
-                    player.IsInCombat = false;
-                    Console.Clear();
-                    Console.ForegroundColor = ConsoleColor.DarkRed;
+                    if (Program.mapArray == null) { return; }
                     Console.WriteLine("You died!");
-                    Thread.Sleep(1000);
+                    Thread.Sleep(500);
                     player.playerDead = true;
-                    // Add logic for player defeat, e.g., game over or respawn
+                    player.IsInCombat = false;
+                    // Save the current position to put the original ground tile back after teleporting
+                    int oldY = player.Y;
+                    int oldX = player.X;
+                    // Teleport player to a new random position on the mapArray
+                    (player.Y, player.X) = player.GetRandomStartPosition(Program.mapArray);
+                    // Put the original ground tile back at the old position
+                    Program.mapArray[oldY, oldX] = Program.previousTile;
+                    // Update the previousTile with the new position's tile
+                    Program.previousTile = Program.mapArray[player.Y, player.X];
+                    // Place the player's character at the new position
+                    Program.mapArray[player.Y, player.X] = player.Character;
+                    player.moveFirst = 0;
                 }
             }
             else
@@ -159,11 +198,9 @@ namespace ConsoleApp.Modules
                 PrintCombatMessage($"{enemy.Name} misses completely! {hitChance}%", 500);
             }
         }
-
         // New method to print combat messages and pause for a given duration
         private void PrintCombatMessage(string message, int pauseDuration)
         {
-
             foreach (char c in message)
             {
                 if (message == "You missed!")
@@ -182,7 +219,6 @@ namespace ConsoleApp.Modules
                 }
                 Console.Write(c);
                 Console.ResetColor();
-
             }
             Console.WriteLine();
             Thread.Sleep(pauseDuration);
@@ -191,17 +227,14 @@ namespace ConsoleApp.Modules
         public void PrintCombatScreen()
         {
             if (player == null || enemy == null) { return; }
-
             Console.Clear();
             Console.ForegroundColor = ConsoleColor.Red;
-
             Console.WriteLine(" ▄▄·           ▌ ▄ ·.  ▄▄▄▄·   ▄▄▄·  ▄▄▄▄▄");
             Console.WriteLine("▐█ ▌·  ▄█▀▄  ·██ ▐███· ▐█ ▀█· ▐█ ▀█   ██");
             Console.WriteLine("██ ▄▄ ▐█▌.▐▌ ▐█ ▌▐▌▐█· ▐█▀▀█▄ ▄█▀▀█   ▐█.");
             Console.WriteLine("▐███▌ ▐█▌.▐▌ ██ ██▌▐█▌ ██▄·▐█ ▐█· ▐▌  ▐█▌·");
             Console.WriteLine("·▀▀▀   ▀█▄▀· ▀▀  █·▀▀▀·▀▀▀▀    ▀   ▀  ▀▀▀");
             Console.WriteLine();
-
             // PLAYER DATA
             Console.ForegroundColor = ConsoleColor.White;
             Console.Write($" {player.Name}");
@@ -219,7 +252,6 @@ namespace ConsoleApp.Modules
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("");
             Console.WriteLine("");
-
             // ENEMY DATA
             Console.ForegroundColor = ConsoleColor.White;
             Console.Write($" {enemy.Name}");
@@ -237,7 +269,6 @@ namespace ConsoleApp.Modules
             Console.WriteLine("");
             Console.WriteLine("");
             Console.ResetColor();
-
             // COMMANDS
             Console.ForegroundColor = ConsoleColor.Magenta;
             Console.ForegroundColor = ConsoleColor.White;
@@ -245,16 +276,12 @@ namespace ConsoleApp.Modules
             Console.WriteLine("");
             Console.ResetColor();
         }
-
-
     }
-
     // Class to store a list of enemies deserialized from the JSON file
     public class EnemyData
     {
         public List<Enemy>? Enemies { get; set; }
     }
-
     // Class to represent an enemy with its name and stats
     public class Enemy
     {
@@ -263,8 +290,5 @@ namespace ConsoleApp.Modules
         public int HP = 0;
         public int ATK = 0;
         public int DEF = 0;
-
     }
-
-
 }
